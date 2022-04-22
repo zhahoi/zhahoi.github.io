@@ -3,11 +3,11 @@
   <title>海因斯的部落格</title>
   
   <subtitle>做颗星星，有棱有角，还会发光。</subtitle>
-  <link href="http://yoursite.com/atom.xml" rel="self"/>
+  <link href="https://zhahoi.github.io/atom.xml" rel="self"/>
   
-  <link href="http://yoursite.com/"/>
+  <link href="https://zhahoi.github.io/"/>
   <updated>2022-04-22T06:02:57.931Z</updated>
-  <id>http://yoursite.com/</id>
+  <id>https://zhahoi.github.io/</id>
   
   <author>
     <name>zhahoi</name>
@@ -18,8 +18,8 @@
   
   <entry>
     <title>使用Git上传代码到Github</title>
-    <link href="https://zhahoi.github.io/54abec2e.html"/>
-    <id>https://zhahoi.github.io/54abec2e.html</id>
+    <link href="https://zhahoi.github.io/posts/54abec2e.html"/>
+    <id>https://zhahoi.github.io/posts/54abec2e.html</id>
     <published>2022-04-22T05:02:33.509Z</published>
     <updated>2022-04-22T06:02:57.931Z</updated>
     
@@ -38,8 +38,8 @@
   
   <entry>
     <title>Hello World</title>
-    <link href="https://zhahoi.github.io/4a17b156.html"/>
-    <id>https://zhahoi.github.io/4a17b156.html</id>
+    <link href="https://zhahoi.github.io/posts/4a17b156.html"/>
+    <id>https://zhahoi.github.io/posts/4a17b156.html</id>
     <published>2022-04-22T04:32:59.741Z</published>
     <updated>2022-04-22T05:33:52.726Z</updated>
     
