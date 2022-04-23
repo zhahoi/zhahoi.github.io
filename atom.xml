@@ -6,7 +6,7 @@
   <link href="https://zhahoi.github.io/atom.xml" rel="self"/>
   
   <link href="https://zhahoi.github.io/"/>
-  <updated>2022-04-23T09:15:53.092Z</updated>
+  <updated>2022-04-23T09:22:19.238Z</updated>
   <id>https://zhahoi.github.io/</id>
   
   <author>
@@ -21,15 +21,14 @@
     <link href="https://zhahoi.github.io/posts/9756efb3.html"/>
     <id>https://zhahoi.github.io/posts/9756efb3.html</id>
     <published>2022-04-23T09:07:45.000Z</published>
-    <updated>2022-04-23T09:15:53.092Z</updated>
+    <updated>2022-04-23T09:22:19.238Z</updated>
     
-    <content type="html"><![CDATA[<h3 id="文献出处"><a href="#文献出处" class="headerlink" title="文献出处"></a>文献出处</h3><p>文献名：<em>Transformer in Convolutional Neural Networks</em></p><p>文献作者：Yun Liu | Guolei Sun等人</p><p>文献引用链接:<a href="https://arxiv.org/abs/2106.03180" target="_blank" rel="noopener">https://arxiv.org/abs/2106.03180</a> </p><h3 id="文献具体内容"><a href="#文献具体内容" class="headerlink" title="文献具体内容"></a>文献具体内容</h3><ol><li>文献研究内容</li><li>文献创新点</li><li>文献研究思路与方法</li><li>实验结果</li><li>实验结论</li></ol>]]></content>
+    <content type="html"><![CDATA[<h3 id="1-文献出处"><a href="#1-文献出处" class="headerlink" title="1.文献出处"></a>1.文献出处</h3><p>文献名：<em>Transformer in Convolutional Neural Networks</em></p><p>文献作者：Yun Liu | Guolei Sun等人</p><p>文献引用链接:<a href="https://arxiv.org/abs/2106.03180" target="_blank" rel="noopener">https://arxiv.org/abs/2106.03180</a> </p><h3 id="2-文献具体内容"><a href="#2-文献具体内容" class="headerlink" title="2.文献具体内容"></a>2.文献具体内容</h3><ol><li>文献研究内容</li><li>文献创新点</li><li>文献研究思路与方法</li><li>实验结果</li><li>实验结论</li></ol>]]></content>
     
     
       
       
-    <summary type="html">&lt;h3 id=&quot;文献出处&quot;&gt;&lt;a href=&quot;#文献出处&quot; class=&quot;headerlink&quot; title=&quot;文献出处&quot;&gt;&lt;/a&gt;文献出处&lt;/h3&gt;&lt;p&gt;文献名：&lt;em&gt;Transformer in Convolutional Neural Networks&lt;/em&gt;&lt;/p&gt;
-</summary>
+    <summary type="html">&lt;h3 id=&quot;1-文献出处&quot;&gt;&lt;a href=&quot;#1-文献出处&quot; class=&quot;headerlink&quot; title=&quot;1.文献出处&quot;&gt;&lt;/a&gt;1.文献出处&lt;/h3&gt;&lt;p&gt;文献名：&lt;em&gt;Transformer in Convolutional Neural Networks&lt;/</summary>
       
     
     
