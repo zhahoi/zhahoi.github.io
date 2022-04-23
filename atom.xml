@@ -6,7 +6,7 @@
   <link href="https://zhahoi.github.io/atom.xml" rel="self"/>
   
   <link href="https://zhahoi.github.io/"/>
-  <updated>2022-04-23T09:22:19.238Z</updated>
+  <updated>2022-04-23T11:11:26.096Z</updated>
   <id>https://zhahoi.github.io/</id>
   
   <author>
@@ -21,9 +21,9 @@
     <link href="https://zhahoi.github.io/posts/9756efb3.html"/>
     <id>https://zhahoi.github.io/posts/9756efb3.html</id>
     <published>2022-04-23T09:07:45.000Z</published>
-    <updated>2022-04-23T09:22:19.238Z</updated>
+    <updated>2022-04-23T11:11:26.096Z</updated>
     
-    <content type="html"><![CDATA[<h3 id="1-文献出处"><a href="#1-文献出处" class="headerlink" title="1.文献出处"></a>1.文献出处</h3><p>文献名：<em>Transformer in Convolutional Neural Networks</em></p><p>文献作者：Yun Liu | Guolei Sun等人</p><p>文献引用链接:<a href="https://arxiv.org/abs/2106.03180" target="_blank" rel="noopener">https://arxiv.org/abs/2106.03180</a> </p><h3 id="2-文献具体内容"><a href="#2-文献具体内容" class="headerlink" title="2.文献具体内容"></a>2.文献具体内容</h3><ol><li>文献研究内容</li><li>文献创新点</li><li>文献研究思路与方法</li><li>实验结果</li><li>实验结论</li></ol>]]></content>
+    <content type="html"><![CDATA[<h3 id="1-文献出处"><a href="#1-文献出处" class="headerlink" title="1.文献出处"></a>1.文献出处</h3><p>文献名：<em>Transformer in Convolutional Neural Networks</em></p><p>论文地址:<a href="https://arxiv.org/abs/2106.03180" target="_blank" rel="noopener">https://arxiv.org/abs/2106.03180</a> </p><p>代码地址：<a href="https://github.com/yun-liu/TransCNN" target="_blank" rel="noopener">https://github.com/yun-liu/TransCNN</a></p><h3 id="2-文献研究内容"><a href="#2-文献研究内容" class="headerlink" title="2.文献研究内容"></a>2.文献研究内容</h3><p>针对多头自注意力模块（Multi-Head Self-Attention, MHSA）中计算和空间复杂度过高导致Vision Transformer效率低下的缺陷，提出一种层级多头注意力机制模块（Hierarchical Multi-Head Self-Attention, H-MHSA)，最后搭建而成的模型被称为TransCNN。</p><h3 id="3-研究创新点"><a href="#3-研究创新点" class="headerlink" title="3.研究创新点"></a>3.研究创新点</h3><ul><li><p>提出了层级多头注意力机制模块（MHSA)来使得Transformer中的自注意力机制计算得更加灵活和高效。</p></li><li><p>不再计算所有tokens的注意力，而是将patches进一步分组到小网格(grids)中，并计算每个网格中的注意力。这一步捕捉了局部关系，并产生了更具辨别力的局部表示。然后将这些小网格合并成更大的网格，并通过将前一步中的小网格视为标记来计算每个新网格中的注意力。通过这种方式，模型基本上捕获了更大区域中的特征关系。该过程被迭代以逐渐减少tokens的数量。</p></li><li><p>在整个过程中，H-MHSA模块逐步计算不断增加的区域大小中的自注意力，并自然地以分层方式对全局关系进行建模。 由于每一步的每个网格只有少量的tokens，可以显着降低视觉变换器的计算&#x2F;空间复杂度。</p></li><li><p>与之前对序列数据进行操作的Transformer网络不同，TransCNN 直接处理 3D 特征图，因此与过去十年提出的先进 CNN 技术兼容。 TransCNN 本质上继承了 CNN 和Transformer的优点，因此在学习尺度&#x2F;移位不变的特征表示和对输入数据中的长期依赖建模方面表现良好。</p></li></ul><h3 id="4-研究思路与方法"><a href="#4-研究思路与方法" class="headerlink" title="4.研究思路与方法"></a>4.研究思路与方法</h3><p><a href="https://imgtu.com/i/Lf0PXT" target="_blank" rel="noopener"><img src="https://s1.ax1x.com/2022/04/23/Lf0PXT.md.png" alt="Lf0PXT.md.png"></a></p><p>提出的TransCNN模型是由层级多头注意力机制模块（H-MHSA)、反向残差瓶颈模块（IRB)和双分支下采样模块（TDB)共同组成的。</p>]]></content>
     
     
       
