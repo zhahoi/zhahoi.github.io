@@ -19,133 +19,133 @@
 <h3 id="4-研究思路与方法"><a href="#4-研究思路与方法" class="headerlink" title="4.研究思路与方法"></a>4.研究思路与方法</h3><p><img src="https://s3.bmp.ovh/imgs/2022/04/23/9104476ebb0d9010.png"></p>
 <p>提出的TransCNN模型是由层级多头注意力机制模块（H-MHSA)、反向残差瓶颈模块（IRB)和双分支下采样模块（TDB)共同组成的，H-MHSA模块和IRB模块用于获得输入图像得局部与全局特征，TDB模块用于降低特征图的大小。这三个模块可以共同组成一个完整的特征提取网络。</p>
 <p>H-MHSA模块、IRB模块和TDB模块的代码实现部分如下：</p>
-<pre class="line-numbers language-none"><code class="language-none">#H-MHSA模块
-class Attention(nn.Module):
-    def __init__(self, dim, head_dim, grid_size&#x3D;1, ds_ratio&#x3D;1, drop&#x3D;0., norm_layer&#x3D;nn.BatchNorm2d):
-        super(Attention, self).__init__()
-        assert dim % head_dim &#x3D;&#x3D; 0
-        self.num_heads &#x3D; dim &#x2F;&#x2F; head_dim
-        self.head_dim &#x3D; head_dim
-        self.scale &#x3D; self.head_dim ** -0.5
-        self.grid_size &#x3D; grid_size
+<pre class="line-numbers language-python" data-language="python"><code class="language-python"><span class="token comment">#H-MHSA模块</span>
+<span class="token keyword">class</span> <span class="token class-name">Attention</span><span class="token punctuation">(</span>nn<span class="token punctuation">.</span>Module<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">def</span> <span class="token function">__init__</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> dim<span class="token punctuation">,</span> head_dim<span class="token punctuation">,</span> grid_size<span class="token operator">=</span><span class="token number">1</span><span class="token punctuation">,</span> ds_ratio<span class="token operator">=</span><span class="token number">1</span><span class="token punctuation">,</span> drop<span class="token operator">=</span><span class="token number">0.</span><span class="token punctuation">,</span> norm_layer<span class="token operator">=</span>nn<span class="token punctuation">.</span>BatchNorm2d<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token builtin">super</span><span class="token punctuation">(</span>Attention<span class="token punctuation">,</span> self<span class="token punctuation">)</span><span class="token punctuation">.</span>__init__<span class="token punctuation">(</span><span class="token punctuation">)</span>
+        <span class="token keyword">assert</span> dim <span class="token operator">%</span> head_dim <span class="token operator">==</span> <span class="token number">0</span>
+        self<span class="token punctuation">.</span>num_heads <span class="token operator">=</span> dim <span class="token operator">//</span> head_dim
+        self<span class="token punctuation">.</span>head_dim <span class="token operator">=</span> head_dim
+        self<span class="token punctuation">.</span>scale <span class="token operator">=</span> self<span class="token punctuation">.</span>head_dim <span class="token operator">**</span> <span class="token operator">-</span><span class="token number">0.5</span>
+        self<span class="token punctuation">.</span>grid_size <span class="token operator">=</span> grid_size
 
-        self.norm &#x3D; norm_layer(dim)
-        self.qkv &#x3D; nn.Conv2d(dim, dim * 3, 1)
-        self.proj &#x3D; nn.Conv2d(dim, dim, 1)
-        self.drop &#x3D; nn.Dropout2d(drop, inplace&#x3D;True)
+        self<span class="token punctuation">.</span>norm <span class="token operator">=</span> norm_layer<span class="token punctuation">(</span>dim<span class="token punctuation">)</span>
+        self<span class="token punctuation">.</span>qkv <span class="token operator">=</span> nn<span class="token punctuation">.</span>Conv2d<span class="token punctuation">(</span>dim<span class="token punctuation">,</span> dim <span class="token operator">*</span> <span class="token number">3</span><span class="token punctuation">,</span> <span class="token number">1</span><span class="token punctuation">)</span>
+        self<span class="token punctuation">.</span>proj <span class="token operator">=</span> nn<span class="token punctuation">.</span>Conv2d<span class="token punctuation">(</span>dim<span class="token punctuation">,</span> dim<span class="token punctuation">,</span> <span class="token number">1</span><span class="token punctuation">)</span>
+        self<span class="token punctuation">.</span>drop <span class="token operator">=</span> nn<span class="token punctuation">.</span>Dropout2d<span class="token punctuation">(</span>drop<span class="token punctuation">,</span> inplace<span class="token operator">=</span><span class="token boolean">True</span><span class="token punctuation">)</span>
 
-        if grid_size &gt; 1:
-            self.grid_norm &#x3D; norm_layer(dim)
-            self.avg_pool &#x3D; nn.AvgPool2d(ds_ratio, stride&#x3D;ds_ratio)
-            self.ds_norm &#x3D; norm_layer(dim)
-            self.q &#x3D; nn.Conv2d(dim, dim, 1)
-            self.kv &#x3D; nn.Conv2d(dim, dim * 2, 1)
+        <span class="token keyword">if</span> grid_size <span class="token operator">></span> <span class="token number">1</span><span class="token punctuation">:</span>
+            self<span class="token punctuation">.</span>grid_norm <span class="token operator">=</span> norm_layer<span class="token punctuation">(</span>dim<span class="token punctuation">)</span>
+            self<span class="token punctuation">.</span>avg_pool <span class="token operator">=</span> nn<span class="token punctuation">.</span>AvgPool2d<span class="token punctuation">(</span>ds_ratio<span class="token punctuation">,</span> stride<span class="token operator">=</span>ds_ratio<span class="token punctuation">)</span>
+            self<span class="token punctuation">.</span>ds_norm <span class="token operator">=</span> norm_layer<span class="token punctuation">(</span>dim<span class="token punctuation">)</span>
+            self<span class="token punctuation">.</span>q <span class="token operator">=</span> nn<span class="token punctuation">.</span>Conv2d<span class="token punctuation">(</span>dim<span class="token punctuation">,</span> dim<span class="token punctuation">,</span> <span class="token number">1</span><span class="token punctuation">)</span>
+            self<span class="token punctuation">.</span>kv <span class="token operator">=</span> nn<span class="token punctuation">.</span>Conv2d<span class="token punctuation">(</span>dim<span class="token punctuation">,</span> dim <span class="token operator">*</span> <span class="token number">2</span><span class="token punctuation">,</span> <span class="token number">1</span><span class="token punctuation">)</span>
 
-    def forward(self, x):
-        B, C, H, W &#x3D; x.shape
-        qkv &#x3D; self.qkv(self.norm(x))
+    <span class="token keyword">def</span> <span class="token function">forward</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> x<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        B<span class="token punctuation">,</span> C<span class="token punctuation">,</span> H<span class="token punctuation">,</span> W <span class="token operator">=</span> x<span class="token punctuation">.</span>shape
+        qkv <span class="token operator">=</span> self<span class="token punctuation">.</span>qkv<span class="token punctuation">(</span>self<span class="token punctuation">.</span>norm<span class="token punctuation">(</span>x<span class="token punctuation">)</span><span class="token punctuation">)</span>
 
-        if self.grid_size &gt; 1:
-            grid_h, grid_w &#x3D; H &#x2F;&#x2F; self.grid_size, W &#x2F;&#x2F; self.grid_size
-            qkv &#x3D; qkv.reshape(B, 3, self.num_heads, self.head_dim, grid_h, self.grid_size, grid_w, self.grid_size)
-            qkv &#x3D; qkv.permute(1, 0, 2, 4, 6, 5, 7, 3)
-            qkv &#x3D; qkv.reshape(3, -1, self.grid_size * self.grid_size, self.head_dim)
-            q, k, v &#x3D; qkv[0], qkv[1], qkv[2]
+        <span class="token keyword">if</span> self<span class="token punctuation">.</span>grid_size <span class="token operator">></span> <span class="token number">1</span><span class="token punctuation">:</span>
+            grid_h<span class="token punctuation">,</span> grid_w <span class="token operator">=</span> H <span class="token operator">//</span> self<span class="token punctuation">.</span>grid_size<span class="token punctuation">,</span> W <span class="token operator">//</span> self<span class="token punctuation">.</span>grid_size
+            qkv <span class="token operator">=</span> qkv<span class="token punctuation">.</span>reshape<span class="token punctuation">(</span>B<span class="token punctuation">,</span> <span class="token number">3</span><span class="token punctuation">,</span> self<span class="token punctuation">.</span>num_heads<span class="token punctuation">,</span> self<span class="token punctuation">.</span>head_dim<span class="token punctuation">,</span> grid_h<span class="token punctuation">,</span> self<span class="token punctuation">.</span>grid_size<span class="token punctuation">,</span> grid_w<span class="token punctuation">,</span> self<span class="token punctuation">.</span>grid_size<span class="token punctuation">)</span>
+            qkv <span class="token operator">=</span> qkv<span class="token punctuation">.</span>permute<span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">,</span> <span class="token number">0</span><span class="token punctuation">,</span> <span class="token number">2</span><span class="token punctuation">,</span> <span class="token number">4</span><span class="token punctuation">,</span> <span class="token number">6</span><span class="token punctuation">,</span> <span class="token number">5</span><span class="token punctuation">,</span> <span class="token number">7</span><span class="token punctuation">,</span> <span class="token number">3</span><span class="token punctuation">)</span>
+            qkv <span class="token operator">=</span> qkv<span class="token punctuation">.</span>reshape<span class="token punctuation">(</span><span class="token number">3</span><span class="token punctuation">,</span> <span class="token operator">-</span><span class="token number">1</span><span class="token punctuation">,</span> self<span class="token punctuation">.</span>grid_size <span class="token operator">*</span> self<span class="token punctuation">.</span>grid_size<span class="token punctuation">,</span> self<span class="token punctuation">.</span>head_dim<span class="token punctuation">)</span>
+            q<span class="token punctuation">,</span> k<span class="token punctuation">,</span> v <span class="token operator">=</span> qkv<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">,</span> qkv<span class="token punctuation">[</span><span class="token number">1</span><span class="token punctuation">]</span><span class="token punctuation">,</span> qkv<span class="token punctuation">[</span><span class="token number">2</span><span class="token punctuation">]</span>
 
-            attn &#x3D; (q @ k.transpose(-2, -1)) * self.scale
-            attn &#x3D; attn.softmax(dim&#x3D;-1)
-            grid_x &#x3D; (attn @ v).reshape(B, self.num_heads, grid_h, grid_w, self.grid_size, self.grid_size, self.head_dim)
-            grid_x &#x3D; grid_x.permute(0, 1, 6, 2, 4, 3, 5).reshape(B, C, H, W)
-            grid_x &#x3D; self.grid_norm(x + grid_x)
+            attn <span class="token operator">=</span> <span class="token punctuation">(</span>q @ k<span class="token punctuation">.</span>transpose<span class="token punctuation">(</span><span class="token operator">-</span><span class="token number">2</span><span class="token punctuation">,</span> <span class="token operator">-</span><span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token operator">*</span> self<span class="token punctuation">.</span>scale
+            attn <span class="token operator">=</span> attn<span class="token punctuation">.</span>softmax<span class="token punctuation">(</span>dim<span class="token operator">=</span><span class="token operator">-</span><span class="token number">1</span><span class="token punctuation">)</span>
+            grid_x <span class="token operator">=</span> <span class="token punctuation">(</span>attn @ v<span class="token punctuation">)</span><span class="token punctuation">.</span>reshape<span class="token punctuation">(</span>B<span class="token punctuation">,</span> self<span class="token punctuation">.</span>num_heads<span class="token punctuation">,</span> grid_h<span class="token punctuation">,</span> grid_w<span class="token punctuation">,</span> self<span class="token punctuation">.</span>grid_size<span class="token punctuation">,</span> self<span class="token punctuation">.</span>grid_size<span class="token punctuation">,</span> self<span class="token punctuation">.</span>head_dim<span class="token punctuation">)</span>
+            grid_x <span class="token operator">=</span> grid_x<span class="token punctuation">.</span>permute<span class="token punctuation">(</span><span class="token number">0</span><span class="token punctuation">,</span> <span class="token number">1</span><span class="token punctuation">,</span> <span class="token number">6</span><span class="token punctuation">,</span> <span class="token number">2</span><span class="token punctuation">,</span> <span class="token number">4</span><span class="token punctuation">,</span> <span class="token number">3</span><span class="token punctuation">,</span> <span class="token number">5</span><span class="token punctuation">)</span><span class="token punctuation">.</span>reshape<span class="token punctuation">(</span>B<span class="token punctuation">,</span> C<span class="token punctuation">,</span> H<span class="token punctuation">,</span> W<span class="token punctuation">)</span>
+            grid_x <span class="token operator">=</span> self<span class="token punctuation">.</span>grid_norm<span class="token punctuation">(</span>x <span class="token operator">+</span> grid_x<span class="token punctuation">)</span>
 
-            q &#x3D; self.q(grid_x).reshape(B, self.num_heads, self.head_dim, -1)
-            q &#x3D; q.transpose(-2, -1)
-            kv &#x3D; self.kv(self.ds_norm(self.avg_pool(grid_x)))
-            kv &#x3D; self.reshape(B, 2, self.num_heads, self.head_dim, -1)
-            kv &#x3D; kv.permute(1, 0, 2, 4, 3)
-            k, v &#x3D; kv[0], kv[1]
+            q <span class="token operator">=</span> self<span class="token punctuation">.</span>q<span class="token punctuation">(</span>grid_x<span class="token punctuation">)</span><span class="token punctuation">.</span>reshape<span class="token punctuation">(</span>B<span class="token punctuation">,</span> self<span class="token punctuation">.</span>num_heads<span class="token punctuation">,</span> self<span class="token punctuation">.</span>head_dim<span class="token punctuation">,</span> <span class="token operator">-</span><span class="token number">1</span><span class="token punctuation">)</span>
+            q <span class="token operator">=</span> q<span class="token punctuation">.</span>transpose<span class="token punctuation">(</span><span class="token operator">-</span><span class="token number">2</span><span class="token punctuation">,</span> <span class="token operator">-</span><span class="token number">1</span><span class="token punctuation">)</span>
+            kv <span class="token operator">=</span> self<span class="token punctuation">.</span>kv<span class="token punctuation">(</span>self<span class="token punctuation">.</span>ds_norm<span class="token punctuation">(</span>self<span class="token punctuation">.</span>avg_pool<span class="token punctuation">(</span>grid_x<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+            kv <span class="token operator">=</span> self<span class="token punctuation">.</span>reshape<span class="token punctuation">(</span>B<span class="token punctuation">,</span> <span class="token number">2</span><span class="token punctuation">,</span> self<span class="token punctuation">.</span>num_heads<span class="token punctuation">,</span> self<span class="token punctuation">.</span>head_dim<span class="token punctuation">,</span> <span class="token operator">-</span><span class="token number">1</span><span class="token punctuation">)</span>
+            kv <span class="token operator">=</span> kv<span class="token punctuation">.</span>permute<span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">,</span> <span class="token number">0</span><span class="token punctuation">,</span> <span class="token number">2</span><span class="token punctuation">,</span> <span class="token number">4</span><span class="token punctuation">,</span> <span class="token number">3</span><span class="token punctuation">)</span>
+            k<span class="token punctuation">,</span> v <span class="token operator">=</span> kv<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">,</span> kv<span class="token punctuation">[</span><span class="token number">1</span><span class="token punctuation">]</span>
 
-        else:
-            qkv &#x3D; qkv.reshape(B, 3, self.num_heads, self.head_dim, -1)
-            qkv &#x3D; qkv.permute(1, 0, 2, 4, 3)
-            q, k, v &#x3D; qkv[0], qkv[1], qkv[2]
+        <span class="token keyword">else</span><span class="token punctuation">:</span>
+            qkv <span class="token operator">=</span> qkv<span class="token punctuation">.</span>reshape<span class="token punctuation">(</span>B<span class="token punctuation">,</span> <span class="token number">3</span><span class="token punctuation">,</span> self<span class="token punctuation">.</span>num_heads<span class="token punctuation">,</span> self<span class="token punctuation">.</span>head_dim<span class="token punctuation">,</span> <span class="token operator">-</span><span class="token number">1</span><span class="token punctuation">)</span>
+            qkv <span class="token operator">=</span> qkv<span class="token punctuation">.</span>permute<span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">,</span> <span class="token number">0</span><span class="token punctuation">,</span> <span class="token number">2</span><span class="token punctuation">,</span> <span class="token number">4</span><span class="token punctuation">,</span> <span class="token number">3</span><span class="token punctuation">)</span>
+            q<span class="token punctuation">,</span> k<span class="token punctuation">,</span> v <span class="token operator">=</span> qkv<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">,</span> qkv<span class="token punctuation">[</span><span class="token number">1</span><span class="token punctuation">]</span><span class="token punctuation">,</span> qkv<span class="token punctuation">[</span><span class="token number">2</span><span class="token punctuation">]</span>
 
-        attn &#x3D; (q @ k.transpose(-2, -1)) * self.scale
-        attn &#x3D; attn.softmax(dim&#x3D;-1)
-        global_x &#x3D; (attn @ v).transpose(-2, -1).reshape(B, C, H, W)
-        if self.grid_size &gt; 1:
-            global_x &#x3D; global_x + grid_x
-        x &#x3D; self.drop(self.proj(global_x))
+        attn <span class="token operator">=</span> <span class="token punctuation">(</span>q @ k<span class="token punctuation">.</span>transpose<span class="token punctuation">(</span><span class="token operator">-</span><span class="token number">2</span><span class="token punctuation">,</span> <span class="token operator">-</span><span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token operator">*</span> self<span class="token punctuation">.</span>scale
+        attn <span class="token operator">=</span> attn<span class="token punctuation">.</span>softmax<span class="token punctuation">(</span>dim<span class="token operator">=</span><span class="token operator">-</span><span class="token number">1</span><span class="token punctuation">)</span>
+        global_x <span class="token operator">=</span> <span class="token punctuation">(</span>attn @ v<span class="token punctuation">)</span><span class="token punctuation">.</span>transpose<span class="token punctuation">(</span><span class="token operator">-</span><span class="token number">2</span><span class="token punctuation">,</span> <span class="token operator">-</span><span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">.</span>reshape<span class="token punctuation">(</span>B<span class="token punctuation">,</span> C<span class="token punctuation">,</span> H<span class="token punctuation">,</span> W<span class="token punctuation">)</span>
+        <span class="token keyword">if</span> self<span class="token punctuation">.</span>grid_size <span class="token operator">></span> <span class="token number">1</span><span class="token punctuation">:</span>
+            global_x <span class="token operator">=</span> global_x <span class="token operator">+</span> grid_x
+        x <span class="token operator">=</span> self<span class="token punctuation">.</span>drop<span class="token punctuation">(</span>self<span class="token punctuation">.</span>proj<span class="token punctuation">(</span>global_x<span class="token punctuation">)</span><span class="token punctuation">)</span>
 
-        return x
+        <span class="token keyword">return</span> x
       
-# IRB模块
-class InvertedResidual(nn.Module):
-    def __init__(self, in_dim, hidden_dim&#x3D;None, out_dim&#x3D;None, kernel_size&#x3D;3,
-                 drop&#x3D;0., act_layer&#x3D;nn.SiLU, norm_layer&#x3D;nn.BatchNorm2d):
-        super(InvertedResidual, self).__init__()
-        hidden_dim &#x3D; hidden_dim or in_dim
-        out_dim &#x3D; out_dim or in_dim
-        pad &#x3D; (kernel_size - 1) &#x2F;&#x2F; 2
+<span class="token comment"># IRB模块</span>
+<span class="token keyword">class</span> <span class="token class-name">InvertedResidual</span><span class="token punctuation">(</span>nn<span class="token punctuation">.</span>Module<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">def</span> <span class="token function">__init__</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> in_dim<span class="token punctuation">,</span> hidden_dim<span class="token operator">=</span><span class="token boolean">None</span><span class="token punctuation">,</span> out_dim<span class="token operator">=</span><span class="token boolean">None</span><span class="token punctuation">,</span> kernel_size<span class="token operator">=</span><span class="token number">3</span><span class="token punctuation">,</span>
+                 drop<span class="token operator">=</span><span class="token number">0.</span><span class="token punctuation">,</span> act_layer<span class="token operator">=</span>nn<span class="token punctuation">.</span>SiLU<span class="token punctuation">,</span> norm_layer<span class="token operator">=</span>nn<span class="token punctuation">.</span>BatchNorm2d<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token builtin">super</span><span class="token punctuation">(</span>InvertedResidual<span class="token punctuation">,</span> self<span class="token punctuation">)</span><span class="token punctuation">.</span>__init__<span class="token punctuation">(</span><span class="token punctuation">)</span>
+        hidden_dim <span class="token operator">=</span> hidden_dim <span class="token keyword">or</span> in_dim
+        out_dim <span class="token operator">=</span> out_dim <span class="token keyword">or</span> in_dim
+        pad <span class="token operator">=</span> <span class="token punctuation">(</span>kernel_size <span class="token operator">-</span> <span class="token number">1</span><span class="token punctuation">)</span> <span class="token operator">//</span> <span class="token number">2</span>
 
-        self.conv1 &#x3D; nn.Sequential(
-            nn.Conv2d(in_dim, hidden_dim, kernel_size&#x3D;1, bias&#x3D;False),
-            norm_layer(hidden_dim),
-            act_layer(inplace&#x3D;True)
-        )
-        self.conv2 &#x3D; nn.Sequential(
-            nn.Conv2d(hidden_dim, hidden_dim, kernel_size&#x3D;kernel_size, padding&#x3D;pad, groups&#x3D;hidden_dim, bias&#x3D;False),
-            norm_layer(hidden_dim),
-            act_layer(inplace&#x3D;True)
-        )
-        self.conv3 &#x3D; nn.Sequential(
-            nn.Conv2d(hidden_dim, out_dim, kernel_size&#x3D;1, bias&#x3D;False),
-            norm_layer(out_dim)
-        )
-        self.drop &#x3D; nn.Dropout2d(drop, inplace&#x3D;True)
+        self<span class="token punctuation">.</span>conv1 <span class="token operator">=</span> nn<span class="token punctuation">.</span>Sequential<span class="token punctuation">(</span>
+            nn<span class="token punctuation">.</span>Conv2d<span class="token punctuation">(</span>in_dim<span class="token punctuation">,</span> hidden_dim<span class="token punctuation">,</span> kernel_size<span class="token operator">=</span><span class="token number">1</span><span class="token punctuation">,</span> bias<span class="token operator">=</span><span class="token boolean">False</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+            norm_layer<span class="token punctuation">(</span>hidden_dim<span class="token punctuation">)</span><span class="token punctuation">,</span>
+            act_layer<span class="token punctuation">(</span>inplace<span class="token operator">=</span><span class="token boolean">True</span><span class="token punctuation">)</span>
+        <span class="token punctuation">)</span>
+        self<span class="token punctuation">.</span>conv2 <span class="token operator">=</span> nn<span class="token punctuation">.</span>Sequential<span class="token punctuation">(</span>
+            nn<span class="token punctuation">.</span>Conv2d<span class="token punctuation">(</span>hidden_dim<span class="token punctuation">,</span> hidden_dim<span class="token punctuation">,</span> kernel_size<span class="token operator">=</span>kernel_size<span class="token punctuation">,</span> padding<span class="token operator">=</span>pad<span class="token punctuation">,</span> groups<span class="token operator">=</span>hidden_dim<span class="token punctuation">,</span> bias<span class="token operator">=</span><span class="token boolean">False</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+            norm_layer<span class="token punctuation">(</span>hidden_dim<span class="token punctuation">)</span><span class="token punctuation">,</span>
+            act_layer<span class="token punctuation">(</span>inplace<span class="token operator">=</span><span class="token boolean">True</span><span class="token punctuation">)</span>
+        <span class="token punctuation">)</span>
+        self<span class="token punctuation">.</span>conv3 <span class="token operator">=</span> nn<span class="token punctuation">.</span>Sequential<span class="token punctuation">(</span>
+            nn<span class="token punctuation">.</span>Conv2d<span class="token punctuation">(</span>hidden_dim<span class="token punctuation">,</span> out_dim<span class="token punctuation">,</span> kernel_size<span class="token operator">=</span><span class="token number">1</span><span class="token punctuation">,</span> bias<span class="token operator">=</span><span class="token boolean">False</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+            norm_layer<span class="token punctuation">(</span>out_dim<span class="token punctuation">)</span>
+        <span class="token punctuation">)</span>
+        self<span class="token punctuation">.</span>drop <span class="token operator">=</span> nn<span class="token punctuation">.</span>Dropout2d<span class="token punctuation">(</span>drop<span class="token punctuation">,</span> inplace<span class="token operator">=</span><span class="token boolean">True</span><span class="token punctuation">)</span>
 
-    def forward(self, x):
-        x &#x3D; self.conv1(x)
-        x &#x3D; self.conv2(x)
-        x &#x3D; self.drop(x)
-        x &#x3D; self.conv3(x)
-        x &#x3D; self.drop(x)
+    <span class="token keyword">def</span> <span class="token function">forward</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> x<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        x <span class="token operator">=</span> self<span class="token punctuation">.</span>conv1<span class="token punctuation">(</span>x<span class="token punctuation">)</span>
+        x <span class="token operator">=</span> self<span class="token punctuation">.</span>conv2<span class="token punctuation">(</span>x<span class="token punctuation">)</span>
+        x <span class="token operator">=</span> self<span class="token punctuation">.</span>drop<span class="token punctuation">(</span>x<span class="token punctuation">)</span>
+        x <span class="token operator">=</span> self<span class="token punctuation">.</span>conv3<span class="token punctuation">(</span>x<span class="token punctuation">)</span>
+        x <span class="token operator">=</span> self<span class="token punctuation">.</span>drop<span class="token punctuation">(</span>x<span class="token punctuation">)</span>
 
-        return x
+        <span class="token keyword">return</span> x
 
-# 将二者进行组合的模块
-class Block(nn.Module):
-    def __init__(self, dim, head_dim, grid_size&#x3D;1, ds_ratio&#x3D;1, expansion&#x3D;4,
-                 drop&#x3D;0., drop_path&#x3D;0., kernel_size&#x3D;3, act_layer&#x3D;nn.SiLU,
-                 norm_layer&#x3D;nn.BatchNorm2d):
-        super(Block, self).__init__()
-        self.drop_path &#x3D; DropPath(drop_path) if drop_path &gt; 0. else nn.Identity()
-        self.attn &#x3D; Attention(dim, head_dim, grid_size&#x3D;grid_size, ds_ratio&#x3D;ds_ratio,
-            drop&#x3D;drop, norm_layer&#x3D;norm_layer)
-        self.conv &#x3D; InvertedResidual(dim, hidden_dim&#x3D;dim * expansion, out_dim&#x3D;dim,
-            kernel_size&#x3D;kernel_size, drop&#x3D;drop, act_layer&#x3D;act_layer, norm_layer&#x3D;norm_layer)
+<span class="token comment"># 将二者进行组合的模块</span>
+<span class="token keyword">class</span> <span class="token class-name">Block</span><span class="token punctuation">(</span>nn<span class="token punctuation">.</span>Module<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">def</span> <span class="token function">__init__</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> dim<span class="token punctuation">,</span> head_dim<span class="token punctuation">,</span> grid_size<span class="token operator">=</span><span class="token number">1</span><span class="token punctuation">,</span> ds_ratio<span class="token operator">=</span><span class="token number">1</span><span class="token punctuation">,</span> expansion<span class="token operator">=</span><span class="token number">4</span><span class="token punctuation">,</span>
+                 drop<span class="token operator">=</span><span class="token number">0.</span><span class="token punctuation">,</span> drop_path<span class="token operator">=</span><span class="token number">0.</span><span class="token punctuation">,</span> kernel_size<span class="token operator">=</span><span class="token number">3</span><span class="token punctuation">,</span> act_layer<span class="token operator">=</span>nn<span class="token punctuation">.</span>SiLU<span class="token punctuation">,</span>
+                 norm_layer<span class="token operator">=</span>nn<span class="token punctuation">.</span>BatchNorm2d<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token builtin">super</span><span class="token punctuation">(</span>Block<span class="token punctuation">,</span> self<span class="token punctuation">)</span><span class="token punctuation">.</span>__init__<span class="token punctuation">(</span><span class="token punctuation">)</span>
+        self<span class="token punctuation">.</span>drop_path <span class="token operator">=</span> DropPath<span class="token punctuation">(</span>drop_path<span class="token punctuation">)</span> <span class="token keyword">if</span> drop_path <span class="token operator">></span> <span class="token number">0.</span> <span class="token keyword">else</span> nn<span class="token punctuation">.</span>Identity<span class="token punctuation">(</span><span class="token punctuation">)</span>
+        self<span class="token punctuation">.</span>attn <span class="token operator">=</span> Attention<span class="token punctuation">(</span>dim<span class="token punctuation">,</span> head_dim<span class="token punctuation">,</span> grid_size<span class="token operator">=</span>grid_size<span class="token punctuation">,</span> ds_ratio<span class="token operator">=</span>ds_ratio<span class="token punctuation">,</span>
+            drop<span class="token operator">=</span>drop<span class="token punctuation">,</span> norm_layer<span class="token operator">=</span>norm_layer<span class="token punctuation">)</span>
+        self<span class="token punctuation">.</span>conv <span class="token operator">=</span> InvertedResidual<span class="token punctuation">(</span>dim<span class="token punctuation">,</span> hidden_dim<span class="token operator">=</span>dim <span class="token operator">*</span> expansion<span class="token punctuation">,</span> out_dim<span class="token operator">=</span>dim<span class="token punctuation">,</span>
+            kernel_size<span class="token operator">=</span>kernel_size<span class="token punctuation">,</span> drop<span class="token operator">=</span>drop<span class="token punctuation">,</span> act_layer<span class="token operator">=</span>act_layer<span class="token punctuation">,</span> norm_layer<span class="token operator">=</span>norm_layer<span class="token punctuation">)</span>
 
-    def forward(self, x):
-        x &#x3D; x + self.drop_path(self.attn(x))
-        x &#x3D; x + self.drop_path(self.conv(x))
-        return x<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+    <span class="token keyword">def</span> <span class="token function">forward</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> x<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        x <span class="token operator">=</span> x <span class="token operator">+</span> self<span class="token punctuation">.</span>drop_path<span class="token punctuation">(</span>self<span class="token punctuation">.</span>attn<span class="token punctuation">(</span>x<span class="token punctuation">)</span><span class="token punctuation">)</span>
+        x <span class="token operator">=</span> x <span class="token operator">+</span> self<span class="token punctuation">.</span>drop_path<span class="token punctuation">(</span>self<span class="token punctuation">.</span>conv<span class="token punctuation">(</span>x<span class="token punctuation">)</span><span class="token punctuation">)</span>
+        <span class="token keyword">return</span> x<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 
 <p>最后是TDB下采样模块。</p>
-<pre class="line-numbers language-none"><code class="language-none">class Downsample(nn.Module):
-    def __init__(self, in_dim, out_dim, act_layer&#x3D;nn.SiLU, norm_layer&#x3D;nn.BatchNorm2d):
-        super(Downsample).__init__()
-        self.conv &#x3D; nn.Conv2d(in_dim, out_dim, kernel_size&#x3D;3, padding&#x3D;1, stride&#x3D;2)
-        self.pool &#x3D; nn.MaxPool2d(2, 2)
-        self.residual &#x3D; nn.Conv2d(in_dim, out_dim, kernel_size&#x3D;1)
-        self.norm1 &#x3D; norm_layer(out_dim)
-        self.norm2 &#x3D; norm_layer(out_dim)
-        self.act &#x3D; act_layer(inplace&#x3D;True)
+<pre class="line-numbers language-python" data-language="python"><code class="language-python"><span class="token keyword">class</span> <span class="token class-name">Downsample</span><span class="token punctuation">(</span>nn<span class="token punctuation">.</span>Module<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">def</span> <span class="token function">__init__</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> in_dim<span class="token punctuation">,</span> out_dim<span class="token punctuation">,</span> act_layer<span class="token operator">=</span>nn<span class="token punctuation">.</span>SiLU<span class="token punctuation">,</span> norm_layer<span class="token operator">=</span>nn<span class="token punctuation">.</span>BatchNorm2d<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token builtin">super</span><span class="token punctuation">(</span>Downsample<span class="token punctuation">)</span><span class="token punctuation">.</span>__init__<span class="token punctuation">(</span><span class="token punctuation">)</span>
+        self<span class="token punctuation">.</span>conv <span class="token operator">=</span> nn<span class="token punctuation">.</span>Conv2d<span class="token punctuation">(</span>in_dim<span class="token punctuation">,</span> out_dim<span class="token punctuation">,</span> kernel_size<span class="token operator">=</span><span class="token number">3</span><span class="token punctuation">,</span> padding<span class="token operator">=</span><span class="token number">1</span><span class="token punctuation">,</span> stride<span class="token operator">=</span><span class="token number">2</span><span class="token punctuation">)</span>
+        self<span class="token punctuation">.</span>pool <span class="token operator">=</span> nn<span class="token punctuation">.</span>MaxPool2d<span class="token punctuation">(</span><span class="token number">2</span><span class="token punctuation">,</span> <span class="token number">2</span><span class="token punctuation">)</span>
+        self<span class="token punctuation">.</span>residual <span class="token operator">=</span> nn<span class="token punctuation">.</span>Conv2d<span class="token punctuation">(</span>in_dim<span class="token punctuation">,</span> out_dim<span class="token punctuation">,</span> kernel_size<span class="token operator">=</span><span class="token number">1</span><span class="token punctuation">)</span>
+        self<span class="token punctuation">.</span>norm1 <span class="token operator">=</span> norm_layer<span class="token punctuation">(</span>out_dim<span class="token punctuation">)</span>
+        self<span class="token punctuation">.</span>norm2 <span class="token operator">=</span> norm_layer<span class="token punctuation">(</span>out_dim<span class="token punctuation">)</span>
+        self<span class="token punctuation">.</span>act <span class="token operator">=</span> act_layer<span class="token punctuation">(</span>inplace<span class="token operator">=</span><span class="token boolean">True</span><span class="token punctuation">)</span>
 
-    def forward(self, x):
-        x1 &#x3D; self.norm1(self.conv(x))
-        x2 &#x3D; self.norm2(self.residual(self.pool(x)))
-        x &#x3D; self.act(x1 + x2)
-        return x<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+    <span class="token keyword">def</span> <span class="token function">forward</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> x<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        x1 <span class="token operator">=</span> self<span class="token punctuation">.</span>norm1<span class="token punctuation">(</span>self<span class="token punctuation">.</span>conv<span class="token punctuation">(</span>x<span class="token punctuation">)</span><span class="token punctuation">)</span>
+        x2 <span class="token operator">=</span> self<span class="token punctuation">.</span>norm2<span class="token punctuation">(</span>self<span class="token punctuation">.</span>residual<span class="token punctuation">(</span>self<span class="token punctuation">.</span>pool<span class="token punctuation">(</span>x<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+        x <span class="token operator">=</span> self<span class="token punctuation">.</span>act<span class="token punctuation">(</span>x1 <span class="token operator">+</span> x2<span class="token punctuation">)</span>
+        <span class="token keyword">return</span> x<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 
 </br>
 
